@@ -1,0 +1,14 @@
+# Ignore everything in this directory
+*~
+*.diff
+*#
+.classpath
+.eclipse
+.project
+.settings
+target
+*.idea
+*.iml
+.DB_Store
+!.gitignore
+/bin/
