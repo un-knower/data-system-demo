@@ -1,0 +1,5 @@
+HashMap,Hashtable,ConcurrentHashMap(CHM),synchronized Map
+
+见：【ConcurrentHashMap部分写得不够好，自己看源码吧】
+1.http://yemengying.com/2016/05/07/threadsafe-hashmap/
+2.http://yemengying.com/2015/11/06/%E3%80%90%E8%AF%91%E3%80%91%E5%A6%82%E4%BD%95%E5%9C%A8java%E4%B8%AD%E4%BD%BF%E7%94%A8ConcurrentHashMap/

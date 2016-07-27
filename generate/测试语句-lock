@@ -1,0 +1,456 @@
+#[Dir]-目录索引
+
+#[Dir]free-hive-book实验语句
+CREATE EXTERNAL TABLE wdi
+(
+country_name STRING,
+country_code STRING,
+indicator_name STRING,
+indicator_code STRING,
+`1960` FLOAT,`1961` FLOAT,`1962` FLOAT,`1963` FLOAT,`1964` FLOAT,
+`1965` FLOAT,`1966` FLOAT,`1967` FLOAT,`1968` FLOAT,`1969` FLOAT,
+`1970` FLOAT,`1971` FLOAT,`1972` FLOAT,`1973` FLOAT,`1974` FLOAT,
+`1975` FLOAT,`1976` FLOAT,`1977` FLOAT,`1978` FLOAT,`1979` FLOAT,
+`1980` FLOAT,`1981` FLOAT,`1982` FLOAT,`1983` FLOAT,`1984` FLOAT,
+`1985` FLOAT,`1986` FLOAT,`1987` FLOAT,`1988` FLOAT,`1989` FLOAT,
+`1990` FLOAT,`1991` FLOAT,`1992` FLOAT,`1993` FLOAT,`1994` FLOAT,
+`1995` FLOAT,`1996` FLOAT,`1997` FLOAT,`1998` FLOAT,`1999` FLOAT,
+`2000` FLOAT,`2001` FLOAT,`2002` FLOAT,`2003` FLOAT,`2004` FLOAT,
+`2005` FLOAT,`2006` FLOAT,`2007` FLOAT,`2008` FLOAT,`2009` FLOAT,
+`2010` FLOAT,`2011` FLOAT,`2012` FLOAT
+)
+ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY '\t'
+LOCATION '/user/sandbox/wdi';
+
+SELECT `country_name`, `2011` AS trade_2011 FROM wdi WHERE
+  indicator_name = 'Trade (% of GDP)' AND
+  `2011` IS NOT NULL
+  ORDER BY trade_2011 DESC;
+(Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+)
+
+SELECT `country_name`, `2011` AS trade_2011 FROM wdi WHERE
+  indicator_name = 'Trade (% of GDP)' AND
+  `2011` IS NOT NULL
+  SORT BY trade_2011 DESC;
+(Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+)
+
+SELECT country_name, indicator_name, `2011` AS trade_2011 FROM wdi WHERE
+  (indicator_name = 'Trade (% of GDP)' OR
+  indicator_name = 'Broad money (% of GDP)') AND
+  `2011` IS NOT NULL
+  DISTRIBUTE BY indicator_name;
+(Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+...)
+
+SELECT country_name, indicator_name, `2011` AS trade_2011 FROM wdi WHERE
+  (indicator_name = 'Trade (% of GDP)' OR
+  indicator_name = 'Broad money (% of GDP)') AND
+  `2011` IS NOT NULL
+  DISTRIBUTE BY indicator_name
+  SORT BY indicator_name;
+(Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 1
+...
+Launching Job 2 out of 2
+Number of reduce tasks determined at compile time: 1
+...
+)
+
+SELECT country_name, indicator_name, `2011` AS trade_2011 FROM wdi WHERE
+  (indicator_name = 'Trade (% of GDP)' OR
+  indicator_name = 'Broad money (% of GDP)') AND
+  `2011` IS NOT NULL
+  DISTRIBUTE BY indicator_name
+  SORT BY indicator_name, country_name;
+(Query ID = ljl_20160617095405_e0a729e0-3ff5-4d8d-9fbb-cad80474269e
+Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 1
+...
+Launching Job 2 out of 2
+Number of reduce tasks determined at compile time: 1
+...)
+
+
+SELECT country_name, indicator_name, `2011` AS trade_2011 FROM wdi WHERE
+  (indicator_name = 'Trade (% of GDP)' OR
+  indicator_name = 'Broad money (% of GDP)') AND
+  `2011` IS NOT NULL
+  DISTRIBUTE BY indicator_name
+  ORDER BY indicator_name DESC;
+
+7.
+CREATE TABLE oecd_countries (name STRING, year STRING)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t';
+
+CREATE TABLE nato_countries (name STRING);
+
+SELECT o.name
+FROM oecd_countries o
+JOIN nato_countries n
+ON n.name=o.name;
+
+8.
+CREATE TABLE country (
+  name STRING,
+  states ARRAY<STRING>,
+  cities_and_size MAP<STRING, INT>,
+  parties STRUCT<name STRING, votes FLOAT, members INT>
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\001'
+COLLECTION ITEMS TERMINATED BY '\002'
+MAP KEYS TERMINATED BY '\003'
+LINES TERMINATED BY '\n'
+STORED AS TextFile;
+
+test:
+CREATE external TABLE oecd (name STRING, year STRING)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' stored as orcfile;
+
+#[Dir]CREATE TABLE Usage
+CREATE TABLE
+CREATE [TEMPORARY] [EXTERNAL] TABLE [IF NOT EXISTS] [db_name.]table_name    -- (Note: TEMPORARY available in Hive 0.14.0 and later)
+  [(col_name data_type [COMMENT col_comment], ...)]
+  [COMMENT table_comment]
+  [PARTITIONED BY (col_name data_type [COMMENT col_comment], ...)]
+  [CLUSTERED BY (col_name, col_name, ...) [SORTED BY (col_name [ASC|DESC], ...)] INTO num_buckets BUCKETS]
+  [SKEWED BY (col_name, col_name, ...)                  -- (Note: Available in Hive 0.10.0 and later)]
+     ON ((col_value, col_value, ...), (col_value, col_value, ...), ...)
+     [STORED AS DIRECTORIES]
+  [
+   [ROW FORMAT row_format] 
+   [STORED AS file_format]
+     | STORED BY 'storage.handler.class.name' [WITH SERDEPROPERTIES (...)]  -- (Note: Available in Hive 0.6.0 and later)
+  ]
+  [LOCATION hdfs_path]
+  [TBLPROPERTIES (property_name=property_value, ...)]   -- (Note: Available in Hive 0.6.0 and later)
+  [AS select_statement];   -- (Note: Available in Hive 0.5.0 and later; not supported for external tables)
+ 
+CREATE [TEMPORARY] [EXTERNAL] TABLE [IF NOT EXISTS] [db_name.]table_name
+  LIKE existing_table_or_view_name
+  [LOCATION hdfs_path];
+ 
+data_type
+  : primitive_type
+  | array_type
+  | map_type
+  | struct_type
+  | union_type  -- (Note: Available in Hive 0.7.0 and later)
+ 
+primitive_type
+  : TINYINT
+  | SMALLINT
+  | INT
+  | BIGINT
+  | BOOLEAN
+  | FLOAT
+  | DOUBLE
+  | STRING
+  | BINARY      -- (Note: Available in Hive 0.8.0 and later)
+  | TIMESTAMP   -- (Note: Available in Hive 0.8.0 and later)
+  | DECIMAL     -- (Note: Available in Hive 0.11.0 and later)
+  | DECIMAL(precision, scale)  -- (Note: Available in Hive 0.13.0 and later)
+  | DATE        -- (Note: Available in Hive 0.12.0 and later)
+  | VARCHAR     -- (Note: Available in Hive 0.12.0 and later)
+  | CHAR        -- (Note: Available in Hive 0.13.0 and later)
+ 
+array_type
+  : ARRAY < data_type >
+ 
+map_type
+  : MAP < primitive_type, data_type >
+ 
+struct_type
+  : STRUCT < col_name : data_type [COMMENT col_comment], ...>
+ 
+union_type
+   : UNIONTYPE < data_type, data_type, ... >  -- (Note: Available in Hive 0.7.0 and later)
+ 
+row_format
+  : DELIMITED [FIELDS TERMINATED BY char [ESCAPED BY char]] [COLLECTION ITEMS TERMINATED BY char]
+        [MAP KEYS TERMINATED BY char] [LINES TERMINATED BY char]
+        [NULL DEFINED AS char]   -- (Note: Available in Hive 0.13 and later)
+  | SERDE serde_name [WITH SERDEPROPERTIES (property_name=property_value, property_name=property_value, ...)]
+ 
+file_format:
+  : SEQUENCEFILE
+  | TEXTFILE    -- (Default, depending on hive.default.fileformat configuration)
+  | RCFILE      -- (Note: Available in Hive 0.6.0 and later)
+  | ORC         -- (Note: Available in Hive 0.11.0 and later)
+  | PARQUET     -- (Note: Available in Hive 0.13.0 and later)
+  | AVRO        -- (Note: Available in Hive 0.14.0 and later)
+  | INPUTFORMAT input_format_classname OUTPUTFORMAT output_format_classname
+-----------------------------------------------------------------------------------------
+
+#[Dir]Hive添加jar
+ADD JAR /home/ljl/Software/hive/hcatalog/share/hcatalog/hive-hcatalog-core-1.2.1.jar;
+
+#[Dir]Json解析测试
+CREATE external TABLE json_table ( json string )
+location '/user/ljl/test';
+
+get_json_object:
+select get_json_object(json_table.json, '$') from json_table;
+
+select get_json_object(json_table.json,'$.1') as col_1,
+       get_json_object(json_table.json,'$.2') as col_2,
+       get_json_object(json_table.json,'$.3') as col_3
+from json_table;
+
+json_tuple:
+select v.col_1, v.col_2, v.col_3
+from json_table jt
+     LATERAL VIEW json_tuple(jt.json,'1','2','3') v
+     as col_1,col_2,col_3;
+
+CREATE external TABLE json_serde (
+  Foo string,
+  Bar string,
+  Quux struct<QuuxId:int, QuuxName:string>
+)
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+location '/user/ljl/simple';
+
+SELECT Foo, Bar, Quux.QuuxId, Quux.QuuxName
+FROM json_serde;
+
+
+
+#[Dir]struct,array,map测试
+#struct:
+create external table myStruct (id string, info struct<name:string,age:int>)
+row format delimited
+fields terminated by ','
+collection items terminated by ':';
+
+#array
+create external table myArray (id string, info array<int>)
+row format delimited
+fields terminated by ','
+collection items terminated by ':';
+
+#map
+create external table myMap (id string, info map<string,int>)
+row format delimited
+fields terminated by '\t'
+collection items terminated by ','
+map keys terminated by ':'
+lines terminated by '\n';
+
+#[Dir]语句汇总
+1.describe extended <table_name>;
+查看table详细信息，包括table的路径。
+
+
+-------------------------------------------------------------------------------------------------------------
+{"uid":"1045080174","time":"2016-06-16 04:00:00","microtime":1466020800.8295,"elapsed_time":0.0073261260986328,"controller":"common","action":"versions","ip":"14.218.216.112","client_id":"1089857302","language":"zh-Hans","device_id":"866326021951704","version":"4800","channel":"bao360","model":"Coolpad 8713","os":"4.4.4","locale":"1","sig":"6dcbfd8af2b4bbb53a1f5f8915aeee29","sigVersion":"1.0","sigTime":"1466020800716"}
+
+
+create external table 04_log (
+  uid string,
+  time timestamp,
+  microtime string,
+  elapsed_time string,
+  controller string,
+  action string,
+  ip string,
+  client_id string,
+  language string,
+  device_id string,
+  version string,
+  channel string,
+  model string,
+  os string,
+  locale string,
+  sig string,
+  sigVersion string,
+  sigTime string
+)
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+location '/user/ljl/04_all.log/';
+-------------------------------------------------------------------------------------------------------------
+create external table 04_my_log (
+  uid string,
+  time timestamp,
+  microtime double,
+  elapsed_time double,
+  controller string,
+  action string,
+  ip string,
+  client_id string,
+  language string,
+  device_id string,
+  version string,
+  channel string,
+  model string,
+  os string,
+  locale string,
+  sig string,
+  sigVersion string,
+  sigTime string
+)
+ROW FORMAT SERDE 'MySerDe'
+location '/user/ljl/04_all.log/';
+
+*****select cast(microtime as double) from 04_log limit 1;*****
+select cast(time as date) from 04_log limit 1;--bad type
+
+hive> select count(controller) from 04_log;
+Query ID = ljl_20160620013039_2494aadf-a7ae-4d3b-9c31-6756158c78da
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2016-06-20 01:30:42,403 Stage-1 map = 0%,  reduce = 0%
+2016-06-20 01:30:43,444 Stage-1 map = 100%,  reduce = 0%
+2016-06-20 01:30:44,487 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local1317315078_0001
+MapReduce Jobs Launched: 
+Stage-Stage-1:  HDFS Read: 35861546 HDFS Write: 0 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+39772
+Time taken: 5.163 seconds, Fetched: 1 row(s)
+
+
+
+
+
+
+
+
+#Scipt
+#map
+create external table tmp(a int,b string,c string,d string)
+row format delimited
+fields terminated by ','
+location '/user/hive/warehouse/tmp';
+
+create table overtmp(a int,b string,c string,d string)
+row format delimited
+fields terminated by '\t';
+
+
+
+select
+  transform (tmp.a,tmp.b,tmp.c,tmp.d)
+    using 'python ./map.py'
+    as (A,B,C,D)
+from
+  tmp;
+
+select
+  transform (tmp.a,tmp.b,tmp.c,tmp.d)
+    using 'python ./map.py'
+from
+  tmp
+row format delimited
+fields terminated by ',';
+
+select
+  transform (mystruct.id,mystruct.info)
+    using 'python ./map.py'
+    as (A string,B struct<name:string,age:int>,C string,D string)
+from
+  mystruct;
+
+select
+  transform (mymap.id,mymap.info)
+    using 'python ./map.py'
+    as (A string,B map<string,int>,C string,D string)
+from
+  mymap;
+
+create table tmpmymap like mymap;
+
+insert overwrite table tmpmymap 
+select
+  transform (mymap.id,mymap.info)
+    using 'python ./map.py'
+    as (A string,B map<string,int>)
+from
+  mymap;
+
+-----------------------------------------------------------
+select t.b["ljl"] from
+(select transform (mymap.id,mymap.info)
+    row format delimited
+    fields terminated by '\t'
+    collection items terminated by ','
+    map keys terminated by ':'
+    lines terminated by '\n'
+
+    using 'python ./map.py'
+    as (A string,B map<string,int>)
+
+    row format delimited
+    fields terminated by '\t'
+    collection items terminated by '|'
+    map keys terminated by '.'
+    lines terminated by '\n'
+from
+  mymap) t
+-------------------------------------------------
+add jar /home/ljl/Software/hive/hcatalog/share/hcatalog/hive-hcatalog-core-1.2.1.jar;
+
+select transform (mymap.id,mymap.info)
+    row format serde 'org.apache.hive.hcatalog.data.JsonSerDe'
+
+    using 'python ./map.py'
+    as (A string,B map<string,int>)
+
+    row format delimited
+    fields terminated by '\t'
+    collection items terminated by '|'
+    map keys terminated by '.'
+    lines terminated by '\n'
+from
+  mymap
+
+
+
+select 
+  transform (json_table.json)
+    using 'java Main'
+    as (A date,B string,C string)
+from
+  json_table
+
+
+add jar /home/ljl/Shared/MyIF.jar;
+create temporary function myjson as 'JsonUDF';
+select myjson(json,"1") from json_table;
+
+
+
+
+
+------------------------------------------------------------------------------------------------------------
+bin/zookeeper-server-start.sh config/zookeeper.properties
+
+bin/kafka-server-start.sh config/server.properties
+
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 1 --topic my-replicated-topic
+
+bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test
+
+bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic test --from-beginning
+
+bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic my-replicated-topic

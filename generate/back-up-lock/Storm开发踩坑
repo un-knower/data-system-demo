@@ -1,0 +1,20 @@
+Storm开发踩坑
+1.日志系统冲突问题
+<!-- 排除slf4j-log4j12.jar
+一.如果不排除slf4j-log4j12.jar，Topology提交之后，就会首先打印两行警告：
+	SLF4J: Detected both log4j-over-slf4j.jar AND slf4j-log4j12.jar on the class path, preempting StackOverflowError. 
+	SLF4J: See also http://www.slf4j.org/codes.html#log4jDelegationLoop for more details.
+	然后Topology华丽的挂掉：
+	java.lang.NoClassDefFoundError: Could not initialize class org.apache.log4j.Log4jLoggerFactory
+二.原因：
+	log4j-over-slf4j.jar和slf4j-log4j12.jar在同一个classpath下就会出现这个错误。
+三.为什么呢？得从log4j-over-slf4j.jar和slf4j-log4j12.jar的功能说起：
+	1.log4j是真正的日志系统，负责各种日志操作。
+	2.slf4j是日志通用接口，支持多种日志系统，在程序中可以使用slf4j的接口打日志，真正的日志操作由slf4j实际采用的日志系统完成。
+	3.slf4j的另一个特点是：根据class-path具体是哪一个jar来决定具体的日志实现库。
+	4.slf4j还提供一个桥接器，桥接器是一个假的日志实现(log4j就是真的日志实现)，输出给它的日志会被转给slf4j，slf4j再决定真正的日志实现库打印日志。
+	5.桥接器常被用来做不同项目的日志兼容。比如系统A使用log4j接口打印日志(没有使用slf4j这类'壳')，系统B使用logback，现在要统一它俩的日志，A就可以使用slf4j的桥接器，A仍然以为自己是在使用log4j(兼容)，而桥接器将其日志先转成slf4j再使用真正的日志系统logback输出。
+	6.log4j-over-slf4j.jar就是桥接器，slf4j-log4j12.jar就是实现通过slf4j调度使用log4j。它俩出现在一起，日志先通过slf4j-log4j12.jar输出给log4j，结果是输出给了假的log4j(桥接器)log4j-over-slf4j.jar，log4j-over-slf4j.jar又把日志返回给slf4j，slf4j又选择log4j即slf4j-log4j12.jar，从而死循环爆内存呵呵哒，貌似防止损害的策略造成了异常：Could not initialize class org.apache.log4j.Log4jLoggerFactory。
+四.解释MagicCode
+	我猜是Storm中已经包含了log4j-over-slf4j.jar，而kafka使用了slf4j-log4j12.jar，把kafka里的这个排除就好了。
+-->
