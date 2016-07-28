@@ -12,3 +12,4 @@ target
 .DB_Store
 !.gitignore
 /bin/
+*.log
