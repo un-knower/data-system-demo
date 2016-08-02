@@ -21,19 +21,23 @@ import org.slf4j.LoggerFactory;
 
 public class Collector {
     public static void main(String args[]) {
-        Collector col = new Collector();
-        String collectDirectory = "D:\\Consume";
-        String outputDirectory = "D:\\Output";
-        String recoverLog = "D:\\recover.log";
-        col.start(true, collectDirectory, outputDirectory, recoverLog);
-        Scanner sc = new Scanner(System.in);
-        while (true) {
-            String command = sc.nextLine();
-            if (command.equals("shutdown") || command.equals("quit") || command.equals("exit")) {
-                System.out.println("===stoping===");
-                col.stop();
-                break;
+        try{
+            Collector col = new Collector();
+            String collectDirectory = "D:\\Consume";
+            String outputDirectory = "D:\\Output";
+            String recoverLog = "D:\\recover.log";
+            col.start(true, collectDirectory, outputDirectory, recoverLog);
+            Scanner sc = new Scanner(System.in);
+            while (true) {
+                String command = sc.nextLine();
+                if (command.equals("shutdown") || command.equals("quit") || command.equals("exit")) {
+                    System.out.println("===stoping===");
+                    col.stop();
+                    break;
+                }
             }
+        }catch(Exception e){
+            
         }
     }
 
@@ -51,7 +55,7 @@ public class Collector {
 
     public void stop() {
         this.shutdown = true;
-        System.out.println("发射stop信号");
+        System.out.println("send stop signal to CollectorThread, SinkThread and LogCheckPointThread!");
     }
 
     private static Logger logger = LoggerFactory.getLogger(Collector.class);
@@ -106,6 +110,11 @@ public class Collector {
         public int hashCode() {
             return this.getFile().hashCode();
         }
+
+        @Override
+        public String toString() {
+            return file.getPath() + "\t" + isCollecting + "\t" + offset;
+        }
     }
 
     private class CollectorThread implements Runnable {
@@ -144,9 +153,10 @@ public class Collector {
 
         private class LogCheckPointThread implements Runnable {
             private long checkInterval = 1000 * 60 * 5;// 5 minutes
+
             private void checkPoint() {
                 isMerging = true;
-                System.out.println("checkpoint:等待sinkThread结束");
+                // System.out.println("checkpoint:等待sinkThread结束");
                 try {
                     while (sinkingNumber > 0) {
                         try {
@@ -155,7 +165,7 @@ public class Collector {
                             e.printStackTrace();
                         }
                     }
-                    System.out.println("checkpoint:start merge");
+                    // System.out.println("checkpoint:start merge");
                     // merge
                     File file = new File(recoverLog);
                     if (file.length() < LogMaxSize) {
@@ -187,13 +197,12 @@ public class Collector {
             }
 
             public void run() {
-                System.out.println("启动check point thread");
                 while (!shutdown) {
                     try {
                         Thread.sleep(this.checkInterval);
                     } catch (InterruptedException e) {
                         // TODO Auto-generated catch block
-                        e.printStackTrace();
+                        // e.printStackTrace();
                     }
                     checkPoint();
                 }
@@ -211,7 +220,8 @@ public class Collector {
             }
 
             public void run() {
-                System.out.println("start sink");
+                System.out.println("start sink:" + sinkBlock.getFile().getPath() + "\tfrom " + sinkBlock.offset + " to "
+                        + aimOffset);
                 sinkBlock.isCollecting = true;
                 incrSinkingNumber();
                 long realCollect = 0;
@@ -268,7 +278,7 @@ public class Collector {
                     block = new CollectInfoBlock(f);
                     watchFile.put(f.getPath(), block);
                 }
-                System.out.println(f.length() + " " + block.getoffset() + " " + blockSize);
+                //System.out.println(f.length() + " " + block.getoffset() + " " + blockSize);
                 if (!block.isCollecting && (f.length() - block.getoffset()) > blockSize) {
                     // collect
                     while (isMerging) {
@@ -278,7 +288,7 @@ public class Collector {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
-                        if(shutdown)
+                        if (shutdown)
                             return;
                     }
                     executor.execute(new SinkThread(block, f.length()));
@@ -383,7 +393,7 @@ public class Collector {
                 logger.info("bad log, can not recover from log");
             }
             shutdown = false;
-            if (this.enableCheckPoint){// enable check point thread
+            if (this.enableCheckPoint) {// enable check point thread
                 this.logCheckThread = new Thread(new LogCheckPointThread());
                 logCheckThread.start();
             }
@@ -395,7 +405,7 @@ public class Collector {
                     e.printStackTrace();
                 }
             }
-            if(this.enableCheckPoint&&this.logCheckThread!=null)
+            if (this.enableCheckPoint && this.logCheckThread != null)
                 this.logCheckThread.interrupt();
             executor.shutdown();
         }

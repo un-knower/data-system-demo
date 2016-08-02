@@ -11,5 +11,4 @@ target
 *.iml
 .DB_Store
 !.gitignore
-/bin/
 *.log
