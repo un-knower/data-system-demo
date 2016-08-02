@@ -23,9 +23,16 @@ public class Collector {
     public static void main(String args[]) {
         try{
             Collector col = new Collector();
-            String collectDirectory = "D:\\Consume";
-            String outputDirectory = "D:\\Output";
-            String recoverLog = "D:\\recover.log";
+            String collectDirectory = null;
+            String outputDirectory = null;
+            String recoverLog = null;
+            if(args!=null&&args.length>=3){
+                collectDirectory = args[0];
+                outputDirectory = args[1];
+                recoverLog = args[2];
+            }
+            else
+                return;
             col.start(true, collectDirectory, outputDirectory, recoverLog);
             Scanner sc = new Scanner(System.in);
             while (true) {

@@ -34,7 +34,7 @@ public class QueueConsumer {
 
     private int checkNewLogFactor;// 至多checkNewLogFactor这么多写到错误的log中
     private long lastLogStamp;
-    private String outputDirectory = "D:\\Consume";
+    private String outputDirectory;
     private long newLogInMinute;
 
     public void stop() {
@@ -48,7 +48,8 @@ public class QueueConsumer {
      * @param checkNewLogFactor
      * @param logInterval
      */
-    public QueueConsumer(long timeout, int bufferSize, int batchFactor, int checkNewLogFactor, int newLogInMinute) {
+    public QueueConsumer(long timeout, int bufferSize, int batchFactor, int checkNewLogFactor, int newLogInMinute, String outputDirectory) {
+        this.outputDirectory = outputDirectory;
         this.timeout = timeout;
         this.bufferSize = bufferSize;
         this.batchFactor = batchFactor;

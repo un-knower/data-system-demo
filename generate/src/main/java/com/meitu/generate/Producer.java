@@ -12,6 +12,7 @@ public class Producer implements Runnable {
     private ReentrantLock lock = new ReentrantLock();
     private boolean shutdown;
     private QueueConsumer qcon;
+    private String outputDirectory;
 
     synchronized private void threadAliveIncrease() {
         threadAliveNum++;
@@ -23,13 +24,14 @@ public class Producer implements Runnable {
         System.out.println("alive--:" + threadAliveNum);
     }
 
-    public Producer(String directory) {
-        this(directory, 1);
+    public Producer(String directory,String outputDirectory) {
+        this(directory, 1,outputDirectory);
     }
 
-    public Producer(String directory, int threadNum) {
+    public Producer(String directory, int threadNum,String outputDirectory) {
         this.directory = directory;
         this.threadNum = threadNum;
+        this.outputDirectory = outputDirectory;
         shutdown = false;
         threadAliveNum = 0;
     }
@@ -60,7 +62,7 @@ public class Producer implements Runnable {
      */
     public void start() {
         if (qcon == null)
-            qcon = new QueueConsumer(5000, 1000, 500, 10000, 1);
+            qcon = new QueueConsumer(5000, 1000, 500, 10000, 1, outputDirectory);
         for (int i = 0; i < threadNum; i++)
             new Thread(this).start();
     }

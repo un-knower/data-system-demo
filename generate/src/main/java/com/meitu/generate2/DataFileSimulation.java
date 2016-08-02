@@ -51,9 +51,17 @@ public class DataFileSimulation {
     }
 
     public static void main(String args[]) throws Exception {
+        String producePath;
+        int produceThreadNum;
+        String consumePath;
+        if (args != null && args.length >= 3) {
+            producePath = args[0];
+            produceThreadNum = Integer.parseInt(args[1]);
+            consumePath = args[2];
+        } else
+            return;
 
-        String path = "D:\\Produce";
-        File file = new File(path);
+        File file = new File(producePath);
         File[] files = file.listFiles();
         for (File f : files) {
             if (f.getName().length() > 5
@@ -64,15 +72,12 @@ public class DataFileSimulation {
                 f.renameTo(new File(f.getPath().substring(0, f.getPath().length() - 5)));
         }
 
-        int producerNum = 3;
         int bufferSize = 1000;
         long timeout = 5000;
         int logInterval = 1;
-        String logDirectory = "D:\\Consume";
         int maxWrongNum = 9999;
-        String producerDirectory = "D:\\Produce";
-        DataFileSimulation dfs = new DataFileSimulation(producerNum, bufferSize, timeout, logInterval, logDirectory,
-                maxWrongNum, producerDirectory);
+        DataFileSimulation dfs = new DataFileSimulation(produceThreadNum, bufferSize, timeout, logInterval, consumePath,
+                maxWrongNum, producePath);
         dfs.start();
         Scanner sc = new Scanner(System.in);
         while (true) {
