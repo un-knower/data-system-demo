@@ -64,7 +64,7 @@ public class DataFileSimulation{
 		long timeout = 5000;
 		int logInterval = 1;
 		String logDirectory = "D:\\Consume";
-		int maxWrongNum = 500;
+		int maxWrongNum = 9999;
 		String producerDirectory = "D:\\Produce";
 		DataFileSimulation dfs = new DataFileSimulation(producer_num,bufferSize,timeout,logInterval,logDirectory,maxWrongNum,producerDirectory);
 		dfs.start();
